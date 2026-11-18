@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Compiled CUDA / native extensions
+*.so
+*.pyd
+*.dylib
+*.o
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Datasets and run outputs (download / generate locally — never commit)
+datasets/
+results/
+output/
+*.pt
+*.ckpt
+*.pickle
+
+# Large generated artifacts
+*.ply
+*.rrd
+*.npy
+*.npz
+
+# Logs / experiment tracking
+wandb/
+runs/
+*.log
+*.jsonl
+
+# Editor / OS
+.vscode/
+.cursor/
+.idea/
+.DS_Store
+
+
+*.html
+*.js

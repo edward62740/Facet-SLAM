@@ -1,0 +1,5 @@
+# Facet-SLAM settings for Replica: tum.yaml with observation fusion off.
+inherit_from: "configs/facet/tum.yaml"
+Training:
+  locked_geometry:
+    fuse: false

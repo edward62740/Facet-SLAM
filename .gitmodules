@@ -1,0 +1,9 @@
+[submodule "submodules/diff-triangle-mesh-rasterization"]
+	path = submodules/diff-triangle-mesh-rasterization
+	url = https://github.com/nmjfry/diff-triangle-rasterization-w-pose.git
+[submodule "submodules/simple-knn"]
+	path = submodules/simple-knn
+	url = https://gitlab.inria.fr/bkerbl/simple-knn.git
+[submodule "submodules/effrdel"]
+	path = submodules/effrdel
+	url = https://github.com/SonSang/effrdel

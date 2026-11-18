@@ -1,0 +1,42 @@
+Build against the Python environment's pybind11 (find_package(pybind11), pybind11_DIR from pybind11.get_cmake_dir()
+in setup.py) instead of the vendored thirdparty/pybind11, which predates Python 3.11.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 70b7a04..7e8c184 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -91,7 +91,7 @@ endif()
+ 
+ ### Python bindings ###
+ if(BUILD_PYTHON_BINDINGS)
+-  add_subdirectory(thirdparty/pybind11)
++  find_package(pybind11 REQUIRED)
+   pybind11_add_module(pygicp
+     src/python/main.cpp
+   )
+diff --git a/setup.py b/setup.py
+index 6acf2d7..26440fd 100644
+--- a/setup.py
++++ b/setup.py
+@@ -43,6 +43,12 @@ class CMakeBuild(build_ext):
+         # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
+         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
+         # from Python.
++        try:
++            import pybind11
++            pybind11_root = pybind11.get_cmake_dir()
++        except ImportError:
++            pybind11_root = ""
++
+         cmake_args = [
+             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
+             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
+@@ -51,6 +57,8 @@ class CMakeBuild(build_ext):
+             # "-DBUILD_VGICP_CUDA=ON",
+             "-DBUILD_PYTHON_BINDINGS=ON",
+         ]
++        if pybind11_root:
++            cmake_args.append("-Dpybind11_DIR={}".format(pybind11_root))
+         build_args = []
+ 
+         if self.compiler.compiler_type != "msvc":

@@ -1,0 +1,8 @@
+# Facet-SLAM settings for ScanNet: tum.yaml with the tracker settings GS-ICP SLAM uses there.
+inherit_from: "configs/facet/tum.yaml"
+Training:
+  async:
+    gicp:
+      corr: 0.1
+      keyframe_th: 0.7
+      depth_trunc: 5.0

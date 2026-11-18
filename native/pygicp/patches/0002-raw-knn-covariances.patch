@@ -1,0 +1,92 @@
+Raw k-NN covariances: set_regularization_method ("none" keeps the k-NN scatter as estimated, in metres) and
+set_covariance_floor (adds floor^2 I), exposed on FastGICP.
+
+diff --git a/include/fast_gicp/gicp/fast_gicp.hpp b/include/fast_gicp/gicp/fast_gicp.hpp
+index aa38e79..3ae1da2 100755
+--- a/include/fast_gicp/gicp/fast_gicp.hpp
++++ b/include/fast_gicp/gicp/fast_gicp.hpp
+@@ -53,6 +53,7 @@ public:
+   void setNumThreads(int n);
+   void setCorrespondenceRandomness(int k);
+   void setRegularizationMethod(RegularizationMethod method);
++  void setCovarianceFloor(double floor_m);   // RegularizationMethod::NONE: floor_m^2 I added to every raw k-NN covariance (metres)
+   void setKNNMaxDistance(float k);
+ 
+   virtual void swapSourceAndTarget() override;
+@@ -169,6 +170,7 @@ protected:
+   float knn_max_distance_;
+ 
+   RegularizationMethod regularization_method_;
++  double covariance_floor_ = 0.0;
+ 
+   std::shared_ptr<SearchMethodSource> search_source_;
+   std::shared_ptr<SearchMethodTarget> search_target_;
+diff --git a/include/fast_gicp/gicp/impl/fast_gicp_impl.hpp b/include/fast_gicp/gicp/impl/fast_gicp_impl.hpp
+index b7aa14a..2ad75c8 100644
+--- a/include/fast_gicp/gicp/impl/fast_gicp_impl.hpp
++++ b/include/fast_gicp/gicp/impl/fast_gicp_impl.hpp
+@@ -62,6 +62,11 @@ void FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>:
+   regularization_method_ = method;
+ }
+ 
++template <typename PointSource, typename PointTarget, typename SearchMethodSource, typename SearchMethodTarget>
++void FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>::setCovarianceFloor(double floor_m) {
++  covariance_floor_ = floor_m;
++}
++
+ template <typename PointSource, typename PointTarget, typename SearchMethodSource, typename SearchMethodTarget>
+ void FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>::swapSourceAndTarget() {
+   input_.swap(target_);
+@@ -436,6 +441,7 @@ bool FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>:
+     // compute regularized covariance
+     if (regularization_method_ == RegularizationMethod::NONE) {
+       covariances[i] = cov;
++      if (covariance_floor_ > 0.0) covariances[i].template block<3, 3>(0, 0) += covariance_floor_ * covariance_floor_ * Eigen::Matrix3d::Identity();
+     } else if (regularization_method_ == RegularizationMethod::FROBENIUS) {
+       double lambda = 1e-3;
+       Eigen::Matrix3d C = cov.block<3, 3>(0, 0).cast<double>() + lambda * Eigen::Matrix3d::Identity();
+@@ -540,6 +546,7 @@ bool FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>:
+     // compute regularized covariance
+     if (regularization_method_ == RegularizationMethod::NONE) {
+       covariances[i] = cov;
++      if (covariance_floor_ > 0.0) covariances[i].template block<3, 3>(0, 0) += covariance_floor_ * covariance_floor_ * Eigen::Matrix3d::Identity();
+     } else if (regularization_method_ == RegularizationMethod::FROBENIUS) {
+       double lambda = 1e-3;
+       Eigen::Matrix3d C = cov.block<3, 3>(0, 0).cast<double>() + lambda * Eigen::Matrix3d::Identity();
+@@ -655,6 +662,7 @@ bool FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>:
+       // compute regularized covariance
+       if (regularization_method_ == RegularizationMethod::NONE) {
+         covariances[filter[i]-1] = cov;
++        if (covariance_floor_ > 0.0) covariances[filter[i]-1].template block<3, 3>(0, 0) += covariance_floor_ * covariance_floor_ * Eigen::Matrix3d::Identity();
+       } else if (regularization_method_ == RegularizationMethod::FROBENIUS) {
+         double lambda = 1e-3;
+         Eigen::Matrix3d C = cov.block<3, 3>(0, 0).cast<double>() + lambda * Eigen::Matrix3d::Identity();
+@@ -774,6 +782,7 @@ bool FastGICP<PointSource, PointTarget, SearchMethodSource, SearchMethodTarget>:
+       // compute regularized covariance
+       if (regularization_method_ == RegularizationMethod::NONE) {
+         covariances[filter[i]-1] = cov;
++        if (covariance_floor_ > 0.0) covariances[filter[i]-1].template block<3, 3>(0, 0) += covariance_floor_ * covariance_floor_ * Eigen::Matrix3d::Identity();
+       } else if (regularization_method_ == RegularizationMethod::FROBENIUS) {
+         double lambda = 1e-3;
+         Eigen::Matrix3d C = cov.block<3, 3>(0, 0).cast<double>() + lambda * Eigen::Matrix3d::Identity();
+diff --git a/src/python/main.cpp b/src/python/main.cpp
+index 23cee3d..73a2545 100644
+--- a/src/python/main.cpp
++++ b/src/python/main.cpp
+@@ -203,6 +203,16 @@ PYBIND11_MODULE(pygicp, m) {
+     .def("set_correspondence_randomness", &FastGICP::setCorrespondenceRandomness)
+     .def("set_max_correspondence_distance", &FastGICP::setMaxCorrespondenceDistance)
+     .def("set_max_knn_distance", &FastGICP::setKNNMaxDistance)
++    .def("set_regularization_method", [](FastGICP& gicp, const std::string& m) {
++        if (m == "none") gicp.setRegularizationMethod(fast_gicp::RegularizationMethod::NONE);
++        else if (m == "plane") gicp.setRegularizationMethod(fast_gicp::RegularizationMethod::PLANE);
++        else if (m == "min_eig") gicp.setRegularizationMethod(fast_gicp::RegularizationMethod::MIN_EIG);
++        else if (m == "normalized_min_eig") gicp.setRegularizationMethod(fast_gicp::RegularizationMethod::NORMALIZED_MIN_EIG);
++        else if (m == "frobenius") gicp.setRegularizationMethod(fast_gicp::RegularizationMethod::FROBENIUS);
++        else if (m == "normalized_ellipse") gicp.setRegularizationMethod(fast_gicp::RegularizationMethod::NORMALIZED_ELLIPSE);
++        else throw std::runtime_error("unknown regularization method: " + m);
++    }, "k-NN covariance regularization: none (raw scatter in metres, + the covariance floor), plane, min_eig, normalized_min_eig, frobenius, normalized_ellipse (default)")
++    .def("set_covariance_floor", &FastGICP::setCovarianceFloor, "metres: floor^2 I added to every raw k-NN covariance under regularization 'none'")
+     .def("get_source_rotationsq", [] (FastGICP& gicp){
+       return py::array(gicp.getSourceRotationsqSize(), gicp.getSourceRotationsq().data());
+       // std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> source_rotationsq = gicp.getSourceRotationsq();

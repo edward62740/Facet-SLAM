@@ -1,0 +1,27 @@
+Binding: set_source_covariances takes per-point (N, 4, 4) source covariances, used as given.
+
+diff --git a/src/python/main.cpp b/src/python/main.cpp
+index 73a2545..2b2176b 100644
+--- a/src/python/main.cpp
++++ b/src/python/main.cpp
+@@ -241,6 +241,20 @@ PYBIND11_MODULE(pygicp, m) {
+     	return py::make_tuple(py::array(gicp.getSourceSize(), gicp.getSourceCorrespondences().data()), 
+     				py::array(gicp.getSourceSize(), gicp.getSourceSqDistances().data()));
+     })
++    .def("set_source_covariances", [](FastGICP& gicp, py::array_t<double> input) {
++        auto r = input.unchecked<3>();
++        if (r.ndim() != 3 || r.shape(1) != 4 || r.shape(2) != 4) {
++             throw std::runtime_error("Input covariance must be (N, 4, 4)");
++        }
++        size_t N = r.shape(0);
++        std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>> covs(N);
++        for (size_t i = 0; i < N; ++i) {
++            for (int r_idx = 0; r_idx < 4; ++r_idx)
++                for (int c_idx = 0; c_idx < 4; ++c_idx)
++                    covs[i](r_idx, c_idx) = r(i, r_idx, c_idx);
++        }
++        gicp.setSourceCovariances(covs);
++    })
+     .def("set_source_covariances_fromqs", [] (FastGICP& gicp, py::array rotationsq, py::array scales){
+     	if(py::len(rotationsq)/4!=py::len(scales)/3){ std::cerr<<"qs size not matched" <<std::endl; return;}
+     	const auto input_rotationsq = rotationsq.cast<std::vector<float>>();

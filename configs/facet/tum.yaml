@@ -1,0 +1,33 @@
+# Facet-SLAM settings for TUM RGB-D and RealSense input. main.py applies them on top of the per-sequence config.
+Results:
+  emit_nvtx: false
+Dataset:
+  pcd_downsample: 32
+  Calibration:
+    distorted: false                      # use the raw colour image
+Training:
+  iterations_per_view: 25                 # the stock value
+  init_mapping_iters: 50
+  mapping_pose_lr_scale: 0
+  fast_spawn: true
+  locked_geometry:
+    lock_centroid: true
+    pin_mode: intrinsic                   # keep each triangle's mean fixed during training
+    spawn_depth_gate: 0.05
+    fuse: true                            # fuse depth observations into the means
+    carve_votes: 3                        # prune triangles seen through by 3 keyframes
+  async:
+    enabled: true
+    tracker: gicp_cpu
+    kf_burst_iters: 3
+    gicp:
+      stride: 8
+      kf_min_gap: 5
+      mapping_kf_every: 10
+      window_opt: true                    # keyframe pose refinement on / off
+      window_size: 16                     # keyframes in the window
+      prefetch_workers: 3
+      prefetch_ahead: 4
+opt_params:
+  feature_lr: 0.0025
+  weight_lr: 0.1
