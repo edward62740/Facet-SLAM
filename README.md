@@ -151,7 +151,13 @@ python d435_capture.py --to_png <recording>                                     
 python main.py --config <recording>/replay.yaml --dataset_path <recording>          # offline, every frame
 python main.py --d435_replay <recording>                                            # through the live path, at its recorded rate
 ```
-
+## Release roadmap
+- [x] Minimal release
+- [x] Clean and modularize the code
+- [x] Add the jetson demo code
+- [ ] Improvements on initialization and densification
+- [ ] Add support for other cameras
+      
 ## Citation
 
 Please cite the following if you use our implementation.
