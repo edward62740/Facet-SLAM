@@ -6,13 +6,14 @@
 
 
 
-Please refer to the [website](https://edward62740.github.io/facetslam/) for visualizations or the [paper]() for more details.
+Please refer to the [website](https://edward62740.github.io/facetslam/) for visualizations or the [paper](https://arxiv.org/abs/2611.23935) for more details.
 </div>
 
 
 ## Overview
 
-This is a real-time triangle splatting SLAM system.
+This is a real-time triangle splatting SLAM system, which can run on Jetson AGX-class compute. 
+
 
 
 ## Installation
@@ -141,7 +142,7 @@ python main.py --d435 --d435_seconds 60 --d435_size 848x480  #specify size
 ```
 
 Keep the camera still until `Tracking started` appears: the map is initialised from the first frame. Ctrl-C stops the
-camera, and the run then finishes and saves as usual. Depth beyond `--d435_max_depth` (5 m) is dropped.
+camera, and the run then finishes and saves as usual. Depth beyond `--d435_max_depth` (5 m) is dropped, beyond this the depth is rather noisy and unreliable.
 
 Every frame is also recorded, to `OUTPUT_DIR/d435_live/<time>/`, uncompressed (about 2.8 GB per minute). A recording
 can be compressed and processed again:
@@ -160,12 +161,32 @@ python main.py --d435_replay <recording>                                        
       
 ## Citation
 
-Please cite the following if you use our implementation.
+Please cite the following if you use our implementation
+
 ```
+@misc{tan2026facetslamrealtimetrianglesplatting,
+      title={Facet-SLAM: Real-Time Triangle Splatting SLAM}, 
+      author={Edward Beng Wai Tan and Siew-Kei Lam},
+      year={2026},
+      eprint={2611.23935},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2611.23935}, 
+}
+```
+and also TS-SLAM
+
+```
+@inproceedings{fry2026triangle,
+  title     = {Triangle Splatting {SLAM}},
+  author    = {Fry, Nicholas and Dexheimer, Eric and Mazur, Kirill and Kelly, Paul H. J. and Davison, Andrew J.},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2026}
+}
 ```
 
 ## Licence and acknowledgements
 
-Please see the various licenses contained within this code for usage. In general, only non-commercial (research) use is allowed.
+Please see the various licenses contained within this code for usage. In general, only non-commercial (research) use is allowed. 
 
 Our work builds directly on [TS-SLAM](https://github.com/nmjfry/ts-slam), so please cite theirs if you use our implementation. We also thank [GS-ICP SLAM](https://github.com/Lab-of-AI-and-Robotics/GS_ICP_SLAM), [Mesh Splatting](https://github.com/meshsplatting/mesh-splatting) and many others.
