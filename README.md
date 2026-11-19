@@ -18,6 +18,13 @@ This is a real-time triangle splatting SLAM system, which can run on Jetson AGX-
 
 ## Installation
 
+Install eigen3 and pcl:
+
+```
+sudo apt install -y libeigen3-dev libpcl-dev
+```
+
+Run the install script:
 ```bash
 git clone --recursive <this repository URL> facet-slam
 cd facet-slam
@@ -81,6 +88,10 @@ python main.py --dataset_path datasets/tum/rgbd_dataset_freiburg1_desk --config 
 bash tum.sh        # table I settings
 bash replica.sh    # all 8 replica scenes
 ```
+
+Note on performance numbers:
+You will get slightly different numbers over different runs and FPS. The variance can be higher on worse performing scenes. If you want to mitigate this, set a fixed seed via args, and ensure there is no CPU/GPU contention. You can also set the #CPU threads etc. in `slam_mp.py` and cap the FPS.
+
 
 Sequence names for `--dataset`:
 
@@ -156,6 +167,7 @@ python main.py --d435_replay <recording>                                        
 - [x] Minimal release
 - [x] Clean and modularize the code
 - [x] Add the jetson demo code
+- [ ] v1.0 (stable)
 - [ ] Improvements on initialization and densification
 - [ ] Add support for other cameras
       
